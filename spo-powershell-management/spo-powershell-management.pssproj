@@ -28,8 +28,10 @@
   </PropertyGroup>
   <ItemGroup />
   <ItemGroup>
-    <Compile Include="scheduler-get-external-users.ps1" />
-    <Compile Include="get-external-users.ps1" />
+    <Compile Include="azure-spoexternalusers.ps1" />
+    <Compile Include="azure-spostoragemetrics.ps1" />
+    <Compile Include="spoexternalusers.ps1" />
+    <Compile Include="spostoragemetrics.ps1" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
