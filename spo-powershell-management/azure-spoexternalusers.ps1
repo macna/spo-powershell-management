@@ -1,3 +1,6 @@
+# Stop on error, so we don't accidentally send a load of junk emails to people
+$ErrorActionPreference = "Stop"
+
 # Define credentials and connect to the tenant
 $spoCred = Get-AutomationPSCredential -Name 'spoAdminCred'
 Connect-SPOService -Url https://contoso-admin.sharepoint.com -Credential $spoCred
