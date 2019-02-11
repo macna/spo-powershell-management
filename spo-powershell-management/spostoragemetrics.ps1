@@ -1,4 +1,4 @@
-# Get through the proxy (if you don't have one, comment out/remove this)
+# Get through the proxy
 $webclient=New-Object System.Net.WebClient
 $creds=Get-Credential -Message "Proxy Creds"
 $webclient.Proxy.Credentials=$creds
@@ -18,19 +18,13 @@ $totalGBAvailable = [Math]::Round($tenantMetrics.StorageQuota / 1024,2)
 # Because the SPO commandlets won't give us a sensible 'how much space is used' metric, we have to add it up ourselves
 # Get a list of sites, excluding the public site (as it's unused and deprecated) and OneDrive (as that storage is dealt
 # with elsewhere)
-$siteList = Get-SPOSite | Where-Object {$_.Url -ne "http://contoso-public.sharepoint.com/" -and $_.Url -ne "https://contoso-my.sharepoint.com/"}
+$siteList = Get-SPOSite -Limit ALL | Where-Object {$_.Url -ne "http://contoso-public.sharepoint.com/" -and $_.Url -ne "https://contoso-my.sharepoint.com/" -and $_.Url -notlike "https://contoso.sharepoint.com/portals*" -and $_.Url -notlike "http://bot*" -and $_.Template -notlike "GROUP*"}
 
-# Using $siteList, get the amount of storge used by each site
-$storageUsed = ForEach ($site In $siteList) {
-    $siteUrl = $site.Url
-	Get-SPOSite -Identity $siteUrl -Detailed | Select-Object Title, Url, StorageUsageCurrent, ResourceUsageCurrent
-}
+# Add up the $siteList.StorageUsageCurrent attribute and turn it into a useful number
+$totalGBUsed = [Math]::Round(($siteList.StorageUsageCurrent | Measure-Object -Sum).sum /1024,2)
 
-# Add up the $storageUsed.StorageUsageCurrent attribute and turn it into a useful number
-$totalGBUsed = [Math]::Round(($storageUsed.StorageUsageCurrent | Measure-Object -Sum).sum /1024,2)
-
-# Convert the contents of the $storageUsed variable into HTML
-$siteMetrics = $storageUsed | Sort-Object StorageUsageCurrent -Descending | ConvertTo-Html -Fragment
+# Convert the contents of the $siteList variable into HTML
+$siteMetrics = $siteList | Select-Object Title, Url, StorageUsageCurrent | Sort-Object StorageUsageCurrent -Descending | ConvertTo-Html -Fragment
 
 # Compose the body of the HTML email
 $messageBody = @"

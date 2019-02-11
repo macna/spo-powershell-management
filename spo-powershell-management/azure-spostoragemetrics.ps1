@@ -12,17 +12,11 @@ $totalGBAvailable = [Math]::Round($tenantMetrics.StorageQuota / 1024,2)
 # with elsewhere)
 $siteList = Get-SPOSite | Where-Object {$_.Url -ne "http://contoso-public.sharepoint.com/" -and $_.Url -ne "https://contoso-my.sharepoint.com/"}
 
-# Using $siteList, get the amount of storge used by each site
-$storageUsed = ForEach ($site In $siteList) {
-    $siteUrl = $site.Url
-	Get-SPOSite -Identity $siteUrl -Detailed | Select-Object Title, Url, StorageUsageCurrent, ResourceUsageCurrent
-}
+# Add up the $siteList.StorageUsageCurrent attribute and turn it into a useful number
+$totalGBUsed = [Math]::Round(($siteList.StorageUsageCurrent | Measure-Object -Sum).sum /1024,2)
 
-# Add up the $storageUsed.StorageUsageCurrent attribute and turn it into a useful number
-$totalGBUsed = [Math]::Round(($storageUsed.StorageUsageCurrent | Measure-Object -Sum).sum /1024,2)
-
-# Convert the contents of the $storageUsed variable into HTML
-$siteMetrics = $storageUsed | Sort-Object StorageUsageCurrent -Descending | ConvertTo-Html -Fragment
+# Convert the contents of the $siteList variable into HTML
+$siteMetrics = $siteList | Select-Object Title, Url, StorageUsageCurrent | Sort-Object StorageUsageCurrent -Descending | ConvertTo-Html -Fragment
 
 # Compose the body of the HTML email
 $messageBody = @"
